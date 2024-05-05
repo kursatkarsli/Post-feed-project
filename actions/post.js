@@ -1,7 +1,9 @@
 "use server";
 
-import { storePost } from "@/lib/posts";
-import { redirect } from "next/dist/server/api-utils";
+import { uploadImage } from "@/lib/coludinary";
+import { storePost, updatePostLikeStatus } from "@/lib/posts";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export async function createPost(prevState, formData) {
   /**
@@ -26,12 +28,33 @@ export async function createPost(prevState, formData) {
   if (errors.length > 0) {
     return { errors };
   }
+  let imageUrl;
+  try {
+    imageUrl = await uploadImage(image);
+  } catch (error) {
+    throw new Error("Image Upload failed please try again later");
+  }
   await storePost({
-    imageUrl: "",
+    imageUrl,
     title,
     content,
     userId: 1,
   });
-
+  revalidatePath(
+    "/",
+    "layout"
+  )
   redirect("/feed");
+
+}
+
+export async function togglePostLikeStatus(postId) {
+  await updatePostLikeStatus(postId, 2);
+  revalidatePath(
+    "/",
+    "layout"
+  ); /* by default next js caches agressively dynamically not 
+ updating the status of like button so we have to manually tell next
+  with this function which page change it will remove from caches and update data
+  if you wanna all pages revalidate then use / and second argument layout */
 }
