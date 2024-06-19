@@ -11,7 +11,7 @@ export async function createPost(prevState, formData) {
    * in the end behind the scenes next js will cover everything on server
    */
   // normally we don't need this code but when you need to create server actions you need to use it.
-
+console.log('HELLO')
   const title = formData.get("title");
   const image = formData.get("image");
   const content = formData.get("content");
